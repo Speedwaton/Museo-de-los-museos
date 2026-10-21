@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import cl.triskeledu.museo.model.Rol
 import cl.triskeledu.museo.model.Seguridad
 
-/** Base SQLite `museo3.db`. `exportSchema` guarda en app/schemas un JSON por versión. */
+/** Base SQLite `museo.db`. `exportSchema` guarda en app/schemas un JSON por versión. */
 @Database(
     entities = [Usuario::class, Museo::class, Favorito::class, Producto::class, ItemCarrito::class,
         Solicitud::class, LecturaQr::class, Notificacion::class],
@@ -24,7 +24,7 @@ abstract class BaseDatos : RoomDatabase() {
 
         /** Una sola conexión para toda la app (contexto de aplicación, como en el ejemplo SQLite). */
         fun obtener(context: Context): BaseDatos = instancia ?: synchronized(this) {
-            instancia ?: Room.databaseBuilder(context.applicationContext, BaseDatos::class.java, "museo3.db")
+            instancia ?: Room.databaseBuilder(context.applicationContext, BaseDatos::class.java, "museo.db")
                 .addMigrations(MIGRACION_1_2)   // Sin fallbackToDestructiveMigration: nunca borra datos
                 .build().also { instancia = it }
         }

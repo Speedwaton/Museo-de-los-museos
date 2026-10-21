@@ -1,9 +1,9 @@
-# Museo de los Museos 3 · versión básica
+# Museo de los Museos
 
-La versión **más simple** del caso Museo de los Museos que conserva todo lo de la versión 2:
+App Android del caso Museo de los Museos, hecha de la forma más simple posible:
 Kotlin, Jetpack Compose, MVVM sencillo con **un solo ViewModel**, Room con migración,
 OpenStreetMap, cámara, escáner QR, animaciones, notificaciones locales y los 3 roles.
-Ahora los museos muestran **fotos reales** de Wikimedia Commons.
+Los museos muestran **fotos reales** de Wikimedia Commons.
 
 ## Ejecutar
 

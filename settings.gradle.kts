@@ -14,6 +14,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MuseoDeLosMuseos3"
+rootProject.name = "MuseoDeLosMuseos"
 
 include(":app")

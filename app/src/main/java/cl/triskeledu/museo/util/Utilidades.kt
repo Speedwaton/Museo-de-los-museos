@@ -80,7 +80,7 @@ private fun decodificar(bytes: ByteArray, lado: Int): Bitmap? {
 fun cargarImagen(origen: String, lado: Int = 900): Bitmap? = cache.get(origen) ?: runCatching {
     val bytes = if (origen.startsWith("http")) {
         (URL(origen).openConnection() as HttpURLConnection).run {
-            setRequestProperty("User-Agent", "MuseoDeLosMuseos/3.0 (app academica Android)")
+            setRequestProperty("User-Agent", "MuseoDeLosMuseos/1.0 (app academica Android)")
             connectTimeout = 10_000
             readTimeout = 15_000
             inputStream.use { it.readBytes() }
