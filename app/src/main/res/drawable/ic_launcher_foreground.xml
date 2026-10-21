@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fachada de museo: frontón, columnas y escalinata dentro de la zona segura del ícono adaptable. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#FBF8F3" android:pathData="M54,30 L78,42 L30,42 Z" />
+    <path android:fillColor="#FBF8F3" android:pathData="M32,44 H76 V47 H32 Z" />
+    <path android:fillColor="#FBF8F3" android:pathData="M35,49 H40 V68 H35 Z" />
+    <path android:fillColor="#FBF8F3" android:pathData="M45,49 H50 V68 H45 Z" />
+    <path android:fillColor="#FBF8F3" android:pathData="M58,49 H63 V68 H58 Z" />
+    <path android:fillColor="#FBF8F3" android:pathData="M68,49 H73 V68 H68 Z" />
+    <path android:fillColor="#FBF8F3" android:pathData="M31,70 H77 V74 H31 Z" />
+    <path android:fillColor="#D9A441" android:pathData="M28,76 H80 V79 H28 Z" />
+</vector>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Carpetas que el FileProvider puede compartir con otras apps.
+    <files-path path="fotos/"> = carpeta privada context.filesDir/fotos,
+    donde la app de Cámara escribe la foto referencial de una ficha.
+-->
+<paths>
+    <files-path
+        name="fotos_fichas"
+        path="fotos/" />
+</paths>

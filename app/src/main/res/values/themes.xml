@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tema inicial mientras arranca la app; luego Compose dibuja con MuseoTheme. -->
+    <style name="Theme.Museo" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/fondo</item>
+        <item name="android:statusBarColor">@color/burdeo</item>
+    </style>
+</resources>
