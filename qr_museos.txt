@@ -1,0 +1,12 @@
+{"tipo":"museo","codigo":"MUS-001","titulo":"Museo Nacional de Bellas Artes","url":"https://www.mnba.gob.cl/"}
+{"tipo":"museo","codigo":"MUS-002","titulo":"Museo Chileno de Arte Precolombino","url":"https://museo.precolombino.cl/"}
+{"tipo":"museo","codigo":"MUS-003","titulo":"Museo Nacional de Antropología","url":"https://www.mna.inah.gob.mx/"}
+{"tipo":"museo","codigo":"MUS-004","titulo":"Museo Nacional del Prado","url":"https://www.museodelprado.es/"}
+{"tipo":"museo","codigo":"MUS-005","titulo":"Museo Reina Sofía","url":"https://www.museoreinasofia.es/"}
+{"tipo":"museo","codigo":"MUS-006","titulo":"Museo del Oro","url":"https://www.banrepcultural.org/bogota/museo-del-oro"}
+{"tipo":"museo","codigo":"MUS-007","titulo":"MALBA","url":"https://www.malba.org.ar/"}
+{"tipo":"museo","codigo":"MUS-008","titulo":"MASP","url":"https://masp.org.br/"}
+{"tipo":"museo","codigo":"MUS-009","titulo":"Museo Larco","url":"https://www.museolarco.org/"}
+{"tipo":"museo","codigo":"MUS-010","titulo":"Museu Nacional de Arte Antiga","url":"https://www.museudearteantiga.pt/"}
+{"tipo":"museo","codigo":"MUS-011","titulo":"Museo Nacional de Costa Rica","url":"https://www.museocostarica.go.cr/"}
+{"tipo":"museo","codigo":"MUS-012","titulo":"Museo de la Memoria y los Derechos Humanos","url":"https://web.museodelamemoria.cl/"}
