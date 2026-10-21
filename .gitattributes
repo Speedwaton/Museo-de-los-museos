@@ -1,0 +1,10 @@
+# Finales de línea: el repositorio guarda LF y cada sistema usa el suyo al descargar.
+* text=auto
+
+# Scripts que necesitan un final de línea fijo para ejecutarse.
+gradlew text eol=lf
+*.bat text eol=crlf
+
+# Archivos binarios: nunca se convierten.
+*.jar binary
+*.png binary
