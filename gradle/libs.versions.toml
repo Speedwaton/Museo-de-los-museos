@@ -1,0 +1,52 @@
+# =====================================================================
+# libs.versions.toml  ("Version Catalog")
+# ---------------------------------------------------------------------
+# Lugar ÚNICO donde se definen las versiones de plugins y librerías.
+# Desde los archivos build.gradle.kts se usan como: libs.nombre
+# =====================================================================
+
+[versions]
+agp = "8.13.2"                 # Android Gradle Plugin
+kotlin = "2.2.10"              # Lenguaje Kotlin
+coreKtx = "1.15.0"             # Extensiones Kotlin para Android
+activityCompose = "1.9.3"      # Permite usar Compose dentro de una Activity
+lifecycle = "2.8.7"            # ViewModel + collectAsStateWithLifecycle
+composeBom = "2024.12.01"      # "Lista de materiales": alinea versiones de Compose
+room = "2.8.5"                 # Room: capa oficial sobre SQLite
+osmdroid = "6.1.20"            # Mapas de OpenStreetMap (gratis, sin API key)
+codeScanner = "16.1.0"         # Escáner de códigos QR de Google (ML Kit / Google Play services)
+zxing = "3.5.3"                # Solo para DIBUJAR los códigos QR de prueba de cada ficha
+junit = "4.13.2"
+orgJson = "20240303"           # org.json real para pruebas unitarias (en Android ya viene incluido)
+androidxJunit = "1.2.1"
+testRunner = "1.6.2"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycle" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+# Las siguientes no llevan versión: la toma el BOM automáticamente.
+androidx-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core" }
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
+osmdroid-android = { group = "org.osmdroid", name = "osmdroid-android", version.ref = "osmdroid" }
+play-services-code-scanner = { group = "com.google.android.gms", name = "play-services-code-scanner", version.ref = "codeScanner" }
+zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+org-json = { group = "org.json", name = "json", version.ref = "orgJson" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxJunit" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "testRunner" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
