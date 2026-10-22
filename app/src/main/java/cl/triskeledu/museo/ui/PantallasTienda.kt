@@ -72,7 +72,8 @@ private fun Disponibilidad(p: Producto) = when {
     else -> Etiqueta("Disponible", Verde)
 }
 
-// ============================================================ 9. Catálogo de productos y cursos
+// ============================================================ Pantalla 9: Catálogo
+// Productos y cursos con búsqueda y filtro. El Administrador puede agregar y desactivar.
 @Composable
 fun PantallaCatalogo(vm: MuseoViewModel, u: Usuario, alVolver: () -> Unit) {
     val lista by vm.catalogo.collectAsStateWithLifecycle()
@@ -98,7 +99,7 @@ fun PantallaCatalogo(vm: MuseoViewModel, u: Usuario, alVolver: () -> Unit) {
                         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             Foto(null, Modifier.size(56.dp), emoji(c))
                             Column(Modifier.weight(1f)) { Text(p.nombre, fontWeight = FontWeight.Bold); Text(clp(p.precio)); Disponibilidad(p) }
-                            if (u.rol.gestiona) Switch(p.activo, { vm.alternarActivo(p) })   // Desactivación
+                            if (u.rol.gestiona) Switch(p.activo, { vm.alternarActivo(p) })   // Activar o desactivar
                         }
                     }
                 }
@@ -108,14 +109,15 @@ fun PantallaCatalogo(vm: MuseoViewModel, u: Usuario, alVolver: () -> Unit) {
     }
 }
 
-// ============================================================ 10. Detalle y solicitud de compra
+// ============================================================ Pantalla 10: Detalle del producto
+// Agregar al carrito, o pedir información si es un curso.
 @Composable
 fun PantallaProducto(vm: MuseoViewModel, u: Usuario, id: Long, alVolver: () -> Unit) {
     val productos by vm.productos.collectAsStateWithLifecycle()
     val p = productos.firstOrNull { it.id == id }
     var cantidad by rememberSaveable { mutableIntStateOf(1) }
     var consulta by rememberSaveable { mutableStateOf("") }
-    var listo by rememberSaveable { mutableStateOf<Boolean?>(null) }   // Animación breve de éxito o error
+    var listo by rememberSaveable { mutableStateOf<Boolean?>(null) }   // Mensaje animado de éxito o error
     LaunchedEffect(listo) { if (listo != null) { delay(1800); listo = null } }
 
     ConBarra(p?.categoria?.etiqueta ?: "Producto", alVolver) { m ->
@@ -152,7 +154,7 @@ fun PantallaProducto(vm: MuseoViewModel, u: Usuario, id: Long, alVolver: () -> U
     }
 }
 
-// ============================================================ 9b. Alta y modificación (Administrador)
+// ============================================================ Pantalla 9b: Crear o editar un producto (Administrador)
 @Composable
 fun PantallaFichaProducto(vm: MuseoViewModel, id: Long?, alVolver: () -> Unit) {
     LaunchedEffect(id) { vm.prepararProducto(id) }
@@ -175,7 +177,8 @@ fun PantallaFichaProducto(vm: MuseoViewModel, id: Long?, alVolver: () -> Unit) {
     }
 }
 
-// ============================================================ 12. Carrito y cálculo de envío
+// ============================================================ Pantalla 12: Carrito
+// Productos elegidos, destino y modalidad de envío, total y confirmación.
 @Composable
 fun PantallaCarrito(vm: MuseoViewModel, alVolver: () -> Unit) {
     val lineas by vm.carrito.collectAsStateWithLifecycle()
@@ -225,7 +228,8 @@ fun PantallaCarrito(vm: MuseoViewModel, alVolver: () -> Unit) {
     )
 }
 
-// ============================================================ 13. Historial y gestión de solicitudes
+// ============================================================ Pantalla 13: Solicitudes
+// El Cliente ve sus pedidos; el Administrador los ve todos y cambia su estado.
 @Composable
 fun PantallaSolicitudes(vm: MuseoViewModel, u: Usuario, alVolver: () -> Unit) {
     val lista by vm.solicitudes.collectAsStateWithLifecycle()

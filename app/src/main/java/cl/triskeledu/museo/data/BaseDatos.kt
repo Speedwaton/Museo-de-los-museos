@@ -9,7 +9,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import cl.triskeledu.museo.model.Rol
 import cl.triskeledu.museo.model.Seguridad
 
-/** Base SQLite `museo.db`. `exportSchema` guarda en app/schemas un JSON por versión. */
+// La base de datos SQLite (museo.db): sus tablas y su versión.
+// exportSchema guarda en app/schemas la estructura de cada versión.
 @Database(
     entities = [Usuario::class, Museo::class, Favorito::class, Producto::class, ItemCarrito::class,
         Solicitud::class, LecturaQr::class, Notificacion::class],
@@ -22,27 +23,23 @@ abstract class BaseDatos : RoomDatabase() {
     companion object {
         @Volatile private var instancia: BaseDatos? = null
 
-        /** Una sola conexión para toda la app (contexto de aplicación, como en el ejemplo SQLite). */
+        // Abre la base una sola vez y la reutiliza en toda la app.
         fun obtener(context: Context): BaseDatos = instancia ?: synchronized(this) {
             instancia ?: Room.databaseBuilder(context.applicationContext, BaseDatos::class.java, "museo.db")
-                .addMigrations(MIGRACION_1_2)   // Sin fallbackToDestructiveMigration: nunca borra datos
+                .addMigrations(MIGRACION_1_2)   // Actualiza la base sin borrar los datos
                 .build().also { instancia = it }
         }
     }
 }
 
-/** Versión 1 → 2: las fichas ganan una foto de cámara opcional. Las filas existentes se conservan con NULL. */
+// Migración de la versión 1 a la 2: agrega la columna de la foto de cámara sin borrar nada.
 val MIGRACION_1_2 = object : Migration(1, 2) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE museos ADD COLUMN fotoRuta TEXT")
     }
 }
 
-/**
- * ===================== DATOS DE DEMOSTRACIÓN (ficticios) =====================
- * Cuentas de prueba, museos reales con fotos de Wikimedia Commons (licencias libres
- * de cada autor) y un catálogo con precios y stock INVENTADOS.
- */
+// Datos de demostración: cuentas de prueba, museos y productos.
 object DatosDemo {
     data class Cuenta(val rol: Rol, val nombre: String, val correo: String, val clave: String, val avatar: String)
 
@@ -53,6 +50,7 @@ object DatosDemo {
         Cuenta(Rol.CLIENTE, "Lucía Demo", "lucia@museo.demo", "Cliente#2026", "🏺"),
     )
 
+    // Comienzo común de las direcciones de las fotos de Wikimedia Commons.
     private const val COMMONS = "https://thumb.wikimedia.org/wikipedia/commons/thumb/"
 
     private fun m(id: Long, nombre: String, pais: String, ciudad: String, clase: String, proyecto: String,
@@ -115,7 +113,7 @@ object DatosDemo {
         p(9, "Set de etiquetas museográficas", Categoria.ARTICULO, 7_500, 12, 150, "Producto DESACTIVADO (gestión del Administrador).", activo = false),
     )
 
-    /** Inserta lo que falte; si ya existe (mismo id) no lo duplica. */
+    // Guarda los datos de demostración en la base (si ya están, no los repite).
     suspend fun poblar(dao: MuseoDao) {
         dao.insertarUsuarios(CUENTAS.mapIndexed { i, c -> Usuario(i + 1L, c.nombre, c.correo, Seguridad.hash(c.clave), c.rol, c.avatar) })
         dao.insertarMuseos(museos())

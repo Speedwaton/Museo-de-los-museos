@@ -10,11 +10,11 @@ import androidx.room.Upsert
 import cl.triskeledu.museo.model.Rol
 import kotlinx.coroutines.flow.Flow
 
-/** Único DAO de la app. Room genera la implementación y revisa cada SQL al compilar. */
+// Todas las consultas a la base de datos.
 @Dao
 interface MuseoDao {
 
-    // --- Datos iniciales (IGNORE = no duplica, como insertarSiNoExisten del ejemplo) ---
+    // --- Datos de demostración (IGNORE: si ya existen, no los repite) ---
     @Insert(onConflict = OnConflictStrategy.IGNORE) suspend fun insertarUsuarios(lista: List<Usuario>)
     @Insert(onConflict = OnConflictStrategy.IGNORE) suspend fun insertarMuseos(lista: List<Museo>)
     @Insert(onConflict = OnConflictStrategy.IGNORE) suspend fun insertarProductos(lista: List<Producto>)
@@ -55,16 +55,14 @@ interface MuseoDao {
         "FROM carrito c JOIN productos p ON p.id = c.productoId WHERE c.usuarioId = :u")
     suspend fun carritoActual(u: Long): List<LineaCarrito>
 
-    /** Descuenta solo si hay stock suficiente: devuelve 0 si no alcanza. */
+    // Resta stock solo si alcanza. Devuelve 0 si no hay suficiente.
     @Query("UPDATE productos SET stock = stock - :n WHERE id = :id AND activo = 1 AND stock >= :n")
     suspend fun descontarStock(id: Long, n: Int): Int
 
     @Query("DELETE FROM carrito WHERE usuarioId = :u") suspend fun vaciarCarrito(u: Long)
 
-    /**
-     * Compra en UNA transacción: valida y descuenta stock, crea la solicitud y vacía el carrito.
-     * Si falta stock se lanza una excepción y Room deshace todo.
-     */
+    // Compra: resta el stock, crea la solicitud y vacía el carrito.
+    // Si algo falla, se deshace todo (@Transaction).
     @Transaction
     suspend fun comprar(usuarioId: Long, crear: (List<LineaCarrito>) -> Solicitud): Solicitud {
         val lineas = carritoActual(usuarioId)
@@ -83,13 +81,13 @@ interface MuseoDao {
     fun solicitudes(u: Long?): Flow<List<SolicitudConCliente>>
     @Query("UPDATE solicitudes SET estado = :estado WHERE id = :id") suspend fun cambiarEstado(id: Long, estado: EstadoSolicitud)
 
-    // --- Historial QR sin duplicados ---
+    // --- Historial de códigos QR ---
     @Insert(onConflict = OnConflictStrategy.IGNORE) suspend fun insertar(lectura: LecturaQr): Long
     @Query("UPDATE lecturas_qr SET veces = veces + 1, fecha = :fecha WHERE usuarioId = :u AND codigo = :codigo")
     suspend fun repetirLectura(u: Long, codigo: String, fecha: Long): Int
     @Query("SELECT * FROM lecturas_qr WHERE usuarioId = :u ORDER BY fecha DESC") fun lecturas(u: Long): Flow<List<LecturaQr>>
 
-    /** @return true si es la primera lectura de ese código para ese usuario. */
+    // Guarda una lectura QR. Si ya existía, solo suma una vez más. Devuelve true si es nueva.
     @Transaction
     suspend fun registrarLectura(lectura: LecturaQr): Boolean =
         if (repetirLectura(lectura.usuarioId, lectura.codigo, lectura.fecha) > 0) false

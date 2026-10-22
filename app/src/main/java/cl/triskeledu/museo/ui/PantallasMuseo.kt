@@ -85,7 +85,8 @@ import java.io.File
 @Composable
 fun colorFicha(e: EstadoFicha) = when (e) { EstadoFicha.PUBLICADO -> Verde; EstadoFicha.EN_REVISION -> Ambar; else -> MaterialTheme.colorScheme.error }
 
-// ============================================================ 5. Mapa de museos virtuales (OpenStreetMap)
+// ============================================================ Pantalla 5: Mapa de museos
+// Mapa con un marcador por museo, filtros por país y proyecto, y botón Mi ubicación.
 @Composable
 fun PantallaMapa(vm: MuseoViewModel, u: Usuario, alVolver: () -> Unit) {
     val todos by vm.museos.collectAsStateWithLifecycle()
@@ -98,7 +99,7 @@ fun PantallaMapa(vm: MuseoViewModel, u: Usuario, alVolver: () -> Unit) {
     val links = LocalUriHandler.current
     val mapa = rememberMapView()
 
-    // Mi ubicación: capa de osmdroid que se activa al conceder el permiso.
+    // Muestra la ubicación del usuario en el mapa y lo centra ahí.
     fun miUbicacion() = MyLocationNewOverlay(GpsMyLocationProvider(context), mapa).apply {
         enableMyLocation(); mapa.overlays.add(this)
         runOnFirstFix { mapa.post { myLocation?.let { mapa.controller.animateTo(it, 12.0, 1500L) } } }
@@ -151,7 +152,8 @@ fun PantallaMapa(vm: MuseoViewModel, u: Usuario, alVolver: () -> Unit) {
     }
 }
 
-// ============================================================ 6. Detalle del museo
+// ============================================================ Pantalla 6: Detalle del museo
+// Foto, datos, ubicación y visita virtual. Según el rol: favorito, corregir, publicar o ver su QR.
 @Composable
 fun PantallaMuseo(vm: MuseoViewModel, u: Usuario, id: Long, alVolver: () -> Unit) {
     val museos by vm.museos.collectAsStateWithLifecycle()
@@ -188,7 +190,7 @@ fun PantallaMuseo(vm: MuseoViewModel, u: Usuario, id: Long, alVolver: () -> Unit
             if (vm.puedeEditar(museo)) OutlinedButton({ vm.ir(Pantalla.FichaMuseo(museo.id)) }, Modifier.fillMaxWidth()) { Text("Corregir ficha") }
             museo.observacion?.let { if (u.rol.veNoPublicadas) Dato("Observación", it) }
 
-            if (u.rol.gestiona) Card {   // Revisión de publicación
+            if (u.rol.gestiona) Card {   // El Administrador publica u observa la ficha
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text("Revisión de publicación", fontWeight = FontWeight.Bold)
                     OutlinedTextField(observacion, { observacion = it }, label = { Text("Observación") }, modifier = Modifier.fillMaxWidth())
@@ -198,7 +200,7 @@ fun PantallaMuseo(vm: MuseoViewModel, u: Usuario, id: Long, alVolver: () -> Unit
                     }
                 }
             }
-            if (u.rol.editaFichas) {   // QR de la ficha para imprimirlo o probarlo
+            if (u.rol.editaFichas) {   // Muestra el QR de la ficha
                 val json = remember(museo) { LectorQr.generar("museo", museo.codigo, museo.nombre, museo.urlVisita) }
                 Titulo("Código QR · ${museo.codigo}")
                 Image(remember(json) { imagenQr(json) }.asImageBitmap(), "QR", Modifier.size(200.dp).align(Alignment.CenterHorizontally))
@@ -208,14 +210,15 @@ fun PantallaMuseo(vm: MuseoViewModel, u: Usuario, id: Long, alVolver: () -> Unit
     }
 }
 
-// ============================================================ 6b. Registrar o corregir ficha (con cámara)
+// ============================================================ Pantalla 6b: Crear o corregir una ficha
+// Formulario de la ficha, mapa para marcar la ubicación y foto con la cámara.
 @Composable
 fun PantallaFichaMuseo(vm: MuseoViewModel, id: Long?, alVolver: () -> Unit) {
     LaunchedEffect(id) { vm.prepararFicha(id) }
     val f by vm.form.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    // Foto referencial: la app de Cámara escribe en un archivo privado compartido con FileProvider.
+    // Abre la cámara del teléfono y guarda la foto en la ficha.
     var ruta by rememberSaveable { mutableStateOf<String?>(null) }
     val camara = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
         if (ok) vm.editarForm { it.copy(foto = ruta) } else ruta?.let { File(it).delete() }
@@ -225,7 +228,7 @@ fun PantallaFichaMuseo(vm: MuseoViewModel, id: Long?, alVolver: () -> Unit) {
         if (it) abrirCamara() else Toast.makeText(context, "Sin permiso de cámara", Toast.LENGTH_SHORT).show()
     }
 
-    // Mapa pequeño: mantener presionado fija las coordenadas.
+    // Mapa pequeño: al mantenerlo presionado, se llenan la latitud y la longitud.
     val mapa = rememberMapView()
     LaunchedEffect(mapa) {
         mapa.overlays.add(MapEventsOverlay(object : MapEventsReceiver {
@@ -262,7 +265,8 @@ fun PantallaFichaMuseo(vm: MuseoViewModel, id: Long?, alVolver: () -> Unit) {
     }
 }
 
-// ============================================================ 11. Favoritos (y museos consultados por QR)
+// ============================================================ Pantalla 11: Mi colección
+// Museos guardados como favoritos y museos consultados por QR.
 @Composable
 fun PantallaFavoritos(vm: MuseoViewModel, alVolver: () -> Unit) {
     val museos by vm.museos.collectAsStateWithLifecycle()
@@ -296,7 +300,8 @@ fun PantallaFavoritos(vm: MuseoViewModel, alVolver: () -> Unit) {
     }
 }
 
-// ============================================================ 7. Escáner QR
+// ============================================================ Pantalla 7: Escáner QR
+// Leer un QR con la cámara o pegando su texto, y ver el historial.
 private val JSON_EJEMPLO = LectorQr.generar("museo", "MUS-004", "Museo Nacional del Prado", "https://www.museodelprado.es/")
 
 @Composable
@@ -307,7 +312,7 @@ fun PantallaEscaner(vm: MuseoViewModel, alVolver: (() -> Unit)?) {
     ConBarra("Escáner QR", alVolver) { m ->
         Column(Modifier.padding(m).imePadding().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("Apunta la cámara a un QR de un museo, exposición, publicación o producto.")
-            // Igual que el ejemplo de QR: el escáner de Google Play services abre su cámara y devuelve el texto.
+            // Abre el escáner de Google y procesa el texto leído.
             Button({ escanearQr(context, vm::procesarQr) { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() } },
                 Modifier.fillMaxWidth().height(56.dp)) { Text("📷 Escanear con la cámara") }
             Titulo("Probar sin cámara")
@@ -323,7 +328,8 @@ fun PantallaEscaner(vm: MuseoViewModel, alVolver: (() -> Unit)?) {
     }
 }
 
-// ============================================================ 8. Resultado del QR
+// ============================================================ Pantalla 8: Resultado del QR
+// Muestra la ficha encontrada, o el error si el código no sirve.
 @Composable
 fun PantallaResultadoQr(vm: MuseoViewModel, alVolver: () -> Unit) {
     val estado by vm.qr.collectAsStateWithLifecycle()

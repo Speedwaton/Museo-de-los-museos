@@ -11,13 +11,13 @@ import cl.triskeledu.museo.util.EXTRA_DESTINO
 import org.osmdroid.config.Configuration
 import java.io.File
 
-/** Única Activity: Compose dibuja todas las pantallas según el estado del ViewModel. */
+// Pantalla principal de Android. Desde aquí Compose dibuja todas las pantallas.
 class MainActivity : ComponentActivity() {
     private val viewModel: MuseoViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // OpenStreetMap exige identificar la app; la caché de tiles queda en almacenamiento privado.
+        // Configura el mapa: nombre de la app y carpeta donde guarda el mapa descargado.
         Configuration.getInstance().apply {
             userAgentValue = packageName
             osmdroidBasePath = File(cacheDir, "osmdroid")
@@ -28,12 +28,13 @@ class MainActivity : ComponentActivity() {
         setContent { MuseoApp(viewModel) }
     }
 
-    /** Al tocar una notificación con la app abierta. */
+    // Si se toca una notificación con la app abierta, abre su pantalla.
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         abrirDestino(intent)
     }
 
+    // Abre la pantalla que indica la notificación.
     private fun abrirDestino(intent: Intent?) {
         intent?.getStringExtra(EXTRA_DESTINO)?.let(viewModel::abrirDestino)
         intent?.removeExtra(EXTRA_DESTINO)

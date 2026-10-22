@@ -32,15 +32,17 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 // ---------------------------------------------------------------- Permisos
+// Permisos para usar la ubicación.
 val PERMISOS_UBICACION = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
 
+// Dice si la app ya tiene un permiso.
 fun Context.tienePermiso(permiso: String) =
     ContextCompat.checkSelfPermission(this, permiso) == PackageManager.PERMISSION_GRANTED
 
 // ---------------------------------------------------------------- Notificaciones locales
 const val EXTRA_DESTINO = "destino"
 
-/** Muestra un aviso del sistema; al tocarlo, MainActivity abre la pantalla `destino`. */
+// Muestra una notificación en el teléfono. Al tocarla, abre la pantalla indicada.
 @SuppressLint("MissingPermission")
 fun Context.notificar(titulo: String, mensaje: String, destino: String?) {
     if (Build.VERSION.SDK_INT >= 33 && !tienePermiso(Manifest.permission.POST_NOTIFICATIONS)) return
@@ -57,14 +59,17 @@ fun Context.notificar(titulo: String, mensaje: String, destino: String?) {
     )
 }
 
-// ---------------------------------------------------------------- Cámara (como el ejemplo de cámara)
+// ---------------------------------------------------------------- Cámara
+// Crea el archivo donde se guardará la foto.
 fun Context.crearArchivoFoto(): File = File(filesDir, "fotos").apply { mkdirs() }.let { File(it, "ficha_${System.currentTimeMillis()}.jpg") }
+// Dirección del archivo que se le pasa a la app de Cámara.
 fun Context.uriCompartible(archivo: File) = FileProvider.getUriForFile(this, "$packageName.fileprovider", archivo)
 
-// ---------------------------------------------------------------- Imágenes (archivo o Internet)
+// ---------------------------------------------------------------- Imágenes
+// Guarda en memoria las imágenes ya cargadas para no descargarlas otra vez.
 private val cache = LruCache<String, Bitmap>(24)
 
-/** Decodifica bytes reduciendo la imagen para no agotar memoria. */
+// Convierte los bytes en imagen, achicándola para no gastar memoria.
 private fun decodificar(bytes: ByteArray, lado: Int): Bitmap? {
     val medidas = BitmapFactory.Options().apply { inJustDecodeBounds = true }
     BitmapFactory.decodeByteArray(bytes, 0, bytes.size, medidas)
@@ -73,10 +78,7 @@ private fun decodificar(bytes: ByteArray, lado: Int): Bitmap? {
     return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = escala })
 }
 
-/**
- * Carga una foto local (cámara) o descarga una imagen web. Llamar desde un hilo secundario.
- * Wikimedia pide identificar la app con un User-Agent propio.
- */
+// Carga una foto del teléfono o la descarga de internet.
 fun cargarImagen(origen: String, lado: Int = 900): Bitmap? = cache.get(origen) ?: runCatching {
     val bytes = if (origen.startsWith("http")) {
         (URL(origen).openConnection() as HttpURLConnection).run {
@@ -89,8 +91,8 @@ fun cargarImagen(origen: String, lado: Int = 900): Bitmap? = cache.get(origen) ?
     decodificar(bytes, lado)
 }.getOrNull()?.also { cache.put(origen, it) }
 
-// ---------------------------------------------------------------- QR (como el ejemplo de QR)
-/** Abre el escáner de Google Play services, que usa su propia pantalla de cámara. */
+// ---------------------------------------------------------------- Códigos QR
+// Abre el escáner de Google, que usa la cámara y devuelve el texto del QR.
 fun escanearQr(context: Context, alLeer: (String) -> Unit, alFallar: (String) -> Unit) {
     GmsBarcodeScanning.getClient(context, GmsBarcodeScannerOptions.Builder().setBarcodeFormats(Barcode.FORMAT_QR_CODE).build())
         .startScan()
@@ -99,14 +101,15 @@ fun escanearQr(context: Context, alLeer: (String) -> Unit, alFallar: (String) ->
         .addOnFailureListener { alFallar("No se pudo escanear: ${it.message}") }
 }
 
-/** Dibuja el QR de una ficha (ZXing) para probarlo desde otro teléfono. */
+// Dibuja la imagen del QR de una ficha.
 fun imagenQr(texto: String, lado: Int = 512): Bitmap {
     val m = QRCodeWriter().encode(texto, BarcodeFormat.QR_CODE, lado, lado)
     val px = IntArray(lado * lado) { if (m[it % lado, it / lado]) Color.BLACK else Color.WHITE }
     return Bitmap.createBitmap(px, lado, lado, Bitmap.Config.ARGB_8888)
 }
 
-// ---------------------------------------------------------------- Mapa (como el ejemplo de mapas)
+// ---------------------------------------------------------------- Mapa
+// Crea un marcador en el mapa que avisa cuando lo tocan.
 fun MapView.marcador(punto: GeoPoint, titulo: String, alTocar: () -> Unit) = Marker(this).apply {
     position = punto
     title = titulo

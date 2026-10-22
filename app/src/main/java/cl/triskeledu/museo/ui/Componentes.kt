@@ -67,11 +67,12 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 
 // ---------------------------------------------------------------- Tema
+// Colores de la app.
 val Burdeo = Color(0xFF6D2E46)
 val Verde = Color(0xFF2E7D32)
 val Ambar = Color(0xFFB26A00)
 
-/** Tema burdeo/dorado. `textoGrande` (accesibilidad del perfil) agranda las letras un 25 %. */
+// Colores y letras de la app. Con texto grande, las letras son un 25 % más grandes.
 @Composable
 fun TemaMuseo(textoGrande: Boolean, contenido: @Composable () -> Unit) {
     val d = LocalDensity.current
@@ -86,7 +87,7 @@ fun TemaMuseo(textoGrande: Boolean, contenido: @Composable () -> Unit) {
 }
 
 // ---------------------------------------------------------------- Estructura y campos
-/** Pantalla con barra superior y flecha de volver (como PantallaConBarra del ejemplo de cámara). */
+// Pantalla con barra superior, título y flecha para volver.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConBarra(titulo: String, alVolver: (() -> Unit)?, acciones: @Composable () -> Unit = {}, contenido: @Composable (PaddingValues) -> Unit) {
@@ -104,7 +105,7 @@ fun ConBarra(titulo: String, alVolver: (() -> Unit)?, acciones: @Composable () -
     )
 }
 
-/** Campo enlazado a un CampoFormulario: muestra el error debajo (patrón del ejemplo de formularios). */
+// Campo de texto que muestra su error debajo.
 @Composable
 fun Campo(etiqueta: String, campo: CampoFormulario, alCambiar: (String) -> Unit, clave: Boolean = false,
           teclado: KeyboardType = KeyboardType.Text, lineas: Int = 1) {
@@ -117,13 +118,14 @@ fun Campo(etiqueta: String, campo: CampoFormulario, alCambiar: (String) -> Unit,
     )
 }
 
-/** Etiqueta pequeña + valor (como en el ejemplo de QR). */
+// Un dato: título pequeño y su valor debajo.
 @Composable
 fun Dato(etiqueta: String, valor: String) = Column {
     Text(etiqueta, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
     Text(valor)
 }
 
+// Etiqueta de color, por ejemplo el estado de una ficha.
 @Composable
 fun Etiqueta(texto: String, color: Color = MaterialTheme.colorScheme.primary) =
     Surface(color = color.copy(alpha = 0.15f), shape = RoundedCornerShape(50)) {
@@ -131,10 +133,11 @@ fun Etiqueta(texto: String, color: Color = MaterialTheme.colorScheme.primary) =
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
     }
 
+// Título de una sección.
 @Composable
 fun Titulo(texto: String) = Text(texto, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
 
-/** Menú desplegable simple; `null` = "Todos". */
+// Menú desplegable para elegir una opción (o "Todos").
 @Composable
 fun <T> Selector(etiqueta: String, opciones: List<T>, valor: T?, texto: (T) -> String, alElegir: (T?) -> Unit, modifier: Modifier = Modifier) {
     var abierto by remember { mutableStateOf(false) }
@@ -148,13 +151,10 @@ fun <T> Selector(etiqueta: String, opciones: List<T>, valor: T?, texto: (T) -> S
 }
 
 // ---------------------------------------------------------------- Imágenes
-/**
- * Imagen real: primero la foto de cámara, si no la foto web (Wikimedia Commons).
- * Se carga en un hilo secundario; mientras tanto o sin imagen, se muestra un emoji.
- */
+// Muestra una foto (de la cámara o de internet). Mientras carga muestra un círculo, y si no hay foto, un emoji.
 @Composable
 fun Foto(origen: String?, modifier: Modifier, emoji: String = "🏛️") {
-    // Par (cargando, imagen): si la descarga falla se deja de cargar y queda el emoji.
+    // Carga la imagen en segundo plano.
     val estado by produceState<Pair<Boolean, Bitmap?>>((origen != null) to null, origen) {
         value = false to origen?.let { withContext(Dispatchers.IO) { cargarImagen(it) } }
     }
@@ -168,7 +168,8 @@ fun Foto(origen: String?, modifier: Modifier, emoji: String = "🏛️") {
     }
 }
 
-// ---------------------------------------------------------------- Mapa OpenStreetMap (como el ejemplo de mapas)
+// ---------------------------------------------------------------- Mapa
+// Crea el mapa de OpenStreetMap centrado en Iberoamérica.
 @Composable
 fun rememberMapView(): MapView {
     val context = LocalContext.current
@@ -179,9 +180,10 @@ fun rememberMapView(): MapView {
             isTilesScaledToDpi = true
             minZoomLevel = 2.0
             controller.setZoom(2.8)
-            controller.setCenter(GeoPoint(10.0, -45.0)) // Iberoamérica: América + Península Ibérica
+            controller.setCenter(GeoPoint(10.0, -45.0)) // Centro entre América y España
         }
     }
+    // Pausa y reanuda el mapa junto con la app.
     val ciclo = LocalLifecycleOwner.current.lifecycle
     DisposableEffect(ciclo) {
         val observador = LifecycleEventObserver { _, e ->
@@ -194,6 +196,6 @@ fun rememberMapView(): MapView {
     return mapa
 }
 
-/** clipToBounds: sin esto osmdroid dibuja sobre los controles vecinos. */
+// Muestra el mapa dentro de la pantalla sin que se salga de su espacio.
 @Composable
 fun VistaMapa(mapa: MapView, modifier: Modifier) = AndroidView({ mapa }, modifier.clipToBounds())

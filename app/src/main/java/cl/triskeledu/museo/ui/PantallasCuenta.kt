@@ -74,10 +74,11 @@ import cl.triskeledu.museo.model.fecha
 import cl.triskeledu.museo.util.PERMISOS_UBICACION
 import cl.triskeledu.museo.util.tienePermiso
 
-// ============================================================ 1. Bienvenida
+// ============================================================ Pantalla 1: Bienvenida
+// Logo animado, explicación de la app y botón Comenzar.
 @Composable
 fun PantallaBienvenida(vm: MuseoViewModel) {
-    // Animación inicial: el logo "respira" y el texto aparece deslizándose.
+    // Animación: el logo crece y se achica, y el texto aparece de abajo hacia arriba.
     val escala by rememberInfiniteTransition(label = "logo").animateFloat(0.92f, 1.08f, infiniteRepeatable(tween(1400), RepeatMode.Reverse), label = "e")
     val visible = remember { MutableTransitionState(false).apply { targetState = true } }
     Column(
@@ -103,7 +104,8 @@ fun PantallaBienvenida(vm: MuseoViewModel) {
     }
 }
 
-// ============================================================ 3. Selección de rol / inicio de sesión
+// ============================================================ Pantalla 3: Selección de rol e inicio de sesión
+// Se elige el rol, se escribe correo y contraseña, y se entra.
 @Composable
 fun PantallaAcceso(vm: MuseoViewModel, alVolver: (() -> Unit)?) {
     val a by vm.acceso.collectAsStateWithLifecycle()
@@ -123,7 +125,8 @@ fun PantallaAcceso(vm: MuseoViewModel, alVolver: (() -> Unit)?) {
     }
 }
 
-// ============================================================ 2. Registro (Cliente)
+// ============================================================ Pantalla 2: Registro de Cliente
+// Formulario para crear una cuenta nueva con nombre, correo, contraseña y avatar.
 @Composable
 fun PantallaRegistro(vm: MuseoViewModel, alVolver: () -> Unit) {
     val r by vm.registro.collectAsStateWithLifecycle()
@@ -149,7 +152,8 @@ fun SelectorAvatar(actual: String, alElegir: (String) -> Unit) = Row(horizontalA
     }
 }
 
-// ============================================================ 4. Dashboard según el rol
+// ============================================================ Pantalla 4: Inicio (dashboard)
+// Muestra números y accesos rápidos distintos según el rol.
 @Composable
 fun PantallaInicio(vm: MuseoViewModel, u: Usuario) {
     val museos by vm.museos.collectAsStateWithLifecycle()
@@ -207,7 +211,8 @@ fun PantallaInicio(vm: MuseoViewModel, u: Usuario) {
     }
 }
 
-// ============================================================ 14. Notificaciones
+// ============================================================ Pantalla 14: Notificaciones
+// Lista de avisos del usuario. El Administrador también puede enviar avisos.
 @Composable
 fun PantallaAvisos(vm: MuseoViewModel, u: Usuario, alVolver: () -> Unit) {
     val lista by vm.notificaciones.collectAsStateWithLifecycle()
@@ -238,7 +243,8 @@ fun PantallaAvisos(vm: MuseoViewModel, u: Usuario, alVolver: () -> Unit) {
     }
 }
 
-// ============================================================ 15. Perfil y configuración
+// ============================================================ Pantalla 15: Perfil
+// Datos y preferencias del usuario, permisos, cuentas de prueba (Admin) y cerrar sesión.
 @Composable
 fun PantallaPerfil(vm: MuseoViewModel, u: Usuario, alVolver: () -> Unit) {
     val cuentas by vm.usuarios.collectAsStateWithLifecycle()

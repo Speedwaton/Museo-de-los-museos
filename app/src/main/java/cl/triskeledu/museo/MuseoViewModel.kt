@@ -42,22 +42,22 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/** Formulario de inicio de sesión (pantalla 3). */
+// Lo que se escribe en la pantalla de inicio de sesión.
 data class AccesoUi(val rol: Rol = Rol.CLIENTE, val correo: CampoFormulario = CampoFormulario(),
                     val clave: CampoFormulario = CampoFormulario(), val error: String? = null)
 
-/** Formulario de registro (pantalla 2). */
+// Lo que se escribe en la pantalla de registro.
 data class RegistroUi(val nombre: CampoFormulario = CampoFormulario(), val correo: CampoFormulario = CampoFormulario(),
                       val clave: CampoFormulario = CampoFormulario(), val confirmar: CampoFormulario = CampoFormulario(),
                       val avatar: String = "🎨", val error: String? = null)
 
-/** Formulario genérico para fichas de museo y productos: etiqueta → campo validado. */
+// Formulario para crear o editar una ficha de museo o un producto.
 data class FormUi(val id: Long? = null, val campos: Map<String, CampoFormulario> = emptyMap(), val foto: String? = null,
                   val categoria: Categoria = Categoria.CURSO, val activo: Boolean = true, val error: String? = null) {
     fun v(etiqueta: String) = campos[etiqueta]?.valor?.trim().orEmpty()
 }
 
-/** Resultado de leer un QR (pantalla 8). */
+// Lo que muestra la pantalla de resultado del QR: leyendo, encontrado o error.
 sealed interface EstadoQr {
     data object Leyendo : EstadoQr
     data class Ok(val contenido: ContenidoQr, val titulo: String, val detalle: String, val imagen: String?,
@@ -65,7 +65,7 @@ sealed interface EstadoQr {
     data class Error(val mensaje: String, val texto: String, val contenido: ContenidoQr?) : EstadoQr
 }
 
-/** Reglas de cada campo de los formularios (el orden es el de la pantalla). */
+// Campos de cada formulario y la regla que valida cada uno.
 val CAMPOS_FICHA: Map<String, (String) -> String?> = linkedMapOf(
     "Nombre" to { Validar.texto(it) }, "País" to { Validar.texto(it) }, "Ciudad" to { Validar.texto(it, 2) },
     "Clasificación" to { Validar.texto(it) }, "Proyecto" to { Validar.texto(it) }, "Descripción" to { Validar.texto(it, 10) },
@@ -78,34 +78,30 @@ val CAMPOS_PRODUCTO: Map<String, (String) -> String?> = linkedMapOf(
     "Stock / cupos" to Validar::entero, "Peso en gramos (0 = digital)" to Validar::entero, "Código QR" to Validar::codigo,
 )
 
-/**
- * ============================================================================
- * MuseoViewModel: ÚNICO ViewModel de la app (MVVM sencillo)
- * ============================================================================
- * - Sesión activa y navegación (pila de pantallas, igual idea que el ejemplo de formularios).
- * - Expone StateFlow de solo lectura; las pantallas llaman funciones para cambiar el estado.
- * - Todo lo personal se consulta con el id del usuario activo (flatMapLatest),
- *   así los datos de cada perfil nunca se mezclan.
- * ============================================================================
- */
+// ViewModel de la app (MVVM): guarda el estado de todas las pantallas.
+// Las pantallas leen este estado y llaman a sus funciones; nunca tocan la base de datos.
 @OptIn(ExperimentalCoroutinesApi::class)
 class MuseoViewModel(app: Application) : AndroidViewModel(app) {
+    // Acceso a los datos y carga de los datos de demostración.
     private val repo = Repositorio(app)
     private val dao = repo.dao
     private val datosListos = viewModelScope.launch { repo.prepararDatos() }
 
-    // ======================================================== Sesión, navegación y mensajes
+    // ================= Sesión, navegación y mensajes
+    // Usuario conectado (null si nadie inició sesión).
     private val idSesion = MutableStateFlow<Long?>(null)
     val usuario: StateFlow<Usuario?> = idSesion.flatMapLatest { id -> id?.let(dao::usuario) ?: flowOf(null) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     private val yo get() = usuario.value
 
+    // Pantallas abiertas: la última es la que se ve.
     val pila = MutableStateFlow<List<Pantalla>>(listOf(Pantalla.Bienvenida))
     private var pendiente: Pantalla? = null
+    // Mensajes cortos que aparecen abajo de la pantalla.
     val mensajes = MutableSharedFlow<String>(extraBufferCapacity = 5)
     private fun aviso(texto: String) = mensajes.tryEmit(texto)
 
-    /** Abre una pantalla comprobando sesión y permisos del rol. */
+    // Abre una pantalla si el usuario tiene sesión y su rol lo permite.
     fun ir(p: Pantalla) {
         val u = yo
         when {
@@ -115,26 +111,33 @@ class MuseoViewModel(app: Application) : AndroidViewModel(app) {
             else -> pila.update { it + p }
         }
     }
+    // Cambia de pestaña en la barra inferior.
     fun pestana(p: Pantalla) { pila.value = if (p == Pantalla.Inicio) listOf(p) else listOf(Pantalla.Inicio, p) }
+    // Cambia la pantalla actual por otra.
     fun reemplazar(p: Pantalla) = pila.update { it.dropLast(1) + p }
+    // Vuelve a la pantalla anterior.
     fun volver(): Boolean = (pila.value.size > 1).also { if (it) pila.update { l -> l.dropLast(1) } }
+    // Abre la pantalla de una notificación o del historial QR.
     fun abrirDestino(destino: String?) { Pantalla.desde(destino)?.let(::ir) }
 
+    // Consulta solo los datos del usuario conectado, para que no se mezclen los perfiles.
     private fun <T> porUsuario(vacio: T, consulta: (Usuario) -> Flow<T>): StateFlow<T> =
         usuario.flatMapLatest { u -> u?.let(consulta) ?: flowOf(vacio) }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), vacio)
 
-    // ======================================================== Acceso y registro (pantallas 2 y 3)
+    // ================= Inicio de sesión y registro
     val acceso = MutableStateFlow(AccesoUi())
     val registro = MutableStateFlow(RegistroUi())
 
     fun elegirRol(rol: Rol) = acceso.update { it.copy(rol = rol, error = null) }
     fun cambiarCorreo(v: String) = acceso.update { it.copy(correo = campo(v, Validar::correo), error = null) }
     fun cambiarClave(v: String) = acceso.update { it.copy(clave = campo(v) { c -> if (c.isBlank()) "Campo obligatorio" else null }, error = null) }
+    // Rellena el correo y la contraseña de la cuenta de prueba del rol elegido.
     fun usarDemo() = acceso.update { a ->
         val c = cl.triskeledu.museo.data.DatosDemo.CUENTAS.first { it.rol == a.rol }
         a.copy(correo = CampoFormulario(c.correo), clave = CampoFormulario(c.clave), error = null)
     }
 
+    // Revisa los datos y entra a la app.
     fun iniciarSesion() {
         val a = acceso.value
         if (!a.correo.esValido || a.correo.valor.isBlank() || a.clave.valor.isBlank()) {
@@ -150,6 +153,7 @@ class MuseoViewModel(app: Application) : AndroidViewModel(app) {
 
     fun editarRegistro(f: (RegistroUi) -> RegistroUi) = registro.update(f)
 
+    // Valida el formulario y crea la cuenta de Cliente.
     fun registrar() {
         val r = registro.value
         val v = r.copy(
@@ -167,22 +171,26 @@ class MuseoViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    // Guarda la sesión y abre el inicio.
     private fun entrar(u: Usuario) {
         idSesion.value = u.id
         pila.value = listOfNotNull(Pantalla.Inicio, pendiente?.takeIf { it.permitida(u.rol) })
         pendiente = null
     }
 
+    // Sale de la cuenta y vuelve al acceso o a la bienvenida.
     fun cerrarSesion(cambiarUsuario: Boolean) {
         idSesion.value = null
         pila.value = listOf(if (cambiarUsuario) Pantalla.Acceso else Pantalla.Bienvenida)
     }
 
-    // ======================================================== Museos, mapa y favoritos (5, 6 y 11)
+    // ================= Museos, mapa y favoritos
+    // Museos que puede ver el rol (el Cliente solo ve los publicados).
     val museos: StateFlow<List<Museo>> = combine(dao.museos(), usuario) { lista, u ->
         if (u?.rol?.veNoPublicadas == true) lista else lista.filter { it.estado == EstadoFicha.PUBLICADO }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    // Filtros del mapa y museo seleccionado.
     val filtroPais = MutableStateFlow<String?>(null)
     val filtroProyecto = MutableStateFlow<String?>(null)
     val seleccionado = MutableStateFlow<Long?>(null)
@@ -190,8 +198,10 @@ class MuseoViewModel(app: Application) : AndroidViewModel(app) {
         l.filter { (pais == null || it.pais == pais) && (proyecto == null || it.proyecto == proyecto) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    // Favoritos del usuario conectado.
     val favoritos: StateFlow<List<Long>> = porUsuario(emptyList()) { dao.favoritos(it.id) }
 
+    // Guarda o quita un museo de favoritos.
     fun alternarFavorito(m: Museo) {
         val u = yo ?: return
         viewModelScope.launch {
@@ -200,9 +210,10 @@ class MuseoViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    // El Administrador corrige cualquier ficha; el Investigador solo las suyas.
     fun puedeEditar(m: Museo) = yo?.let { it.rol == Rol.ADMINISTRADOR || (it.rol == Rol.INVESTIGADOR && m.autorId == it.id) } == true
 
-    /** Revisión del Administrador: publica u observa la ficha y avisa al investigador. */
+    // El Administrador publica u observa una ficha y avisa al Investigador.
     fun revisar(m: Museo, estado: EstadoFicha, observacion: String?) {
         val u = yo?.takeIf { it.rol.gestiona } ?: return
         viewModelScope.launch {
@@ -213,9 +224,10 @@ class MuseoViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    // ======================================================== Formularios de ficha y producto
+    // ================= Formularios de ficha y de producto
     val form = MutableStateFlow(FormUi())
 
+    // Llena el formulario con la ficha a editar, o lo deja vacío si es nueva.
     fun prepararFicha(id: Long?) = viewModelScope.launch {
         val m = id?.let { dao.museo(it) }
         val valores = listOf(m?.nombre, m?.pais, m?.ciudad, m?.clasificacion, m?.proyecto, m?.descripcion,
@@ -223,6 +235,7 @@ class MuseoViewModel(app: Application) : AndroidViewModel(app) {
         form.value = FormUi(id, CAMPOS_FICHA.keys.zip(valores).associate { (k, v) -> k to CampoFormulario(v.orEmpty()) }, m?.fotoRuta)
     }
 
+    // Llena el formulario con el producto a editar, o lo deja vacío si es nuevo.
     fun prepararProducto(id: Long?) = viewModelScope.launch {
         val p = dao.productos().first().firstOrNull { it.id == id }
         val valores = listOf(p?.nombre, p?.descripcion, p?.precio?.toString(), p?.stock?.toString(), p?.pesoGramos?.toString(), p?.codigo)
@@ -230,17 +243,19 @@ class MuseoViewModel(app: Application) : AndroidViewModel(app) {
             categoria = p?.categoria ?: Categoria.CURSO, activo = p?.activo ?: true)
     }
 
+    // Actualiza un campo y lo valida mientras se escribe.
     fun cambiarCampo(etiqueta: String, valor: String, reglas: Map<String, (String) -> String?>) = form.update {
         it.copy(campos = it.campos + (etiqueta to campo(valor, reglas.getValue(etiqueta))), error = null)
     }
     fun editarForm(f: (FormUi) -> FormUi) = form.update(f)
 
-    /** Valida todos los campos; devuelve false y marca errores si alguno falla. */
+    // Valida todos los campos. Devuelve false si alguno tiene error.
     private fun validarForm(reglas: Map<String, (String) -> String?>): Boolean {
         form.update { f -> f.copy(campos = reglas.mapValues { (k, r) -> campo(f.v(k), r) }) }
         return form.value.campos.values.all { it.esValido }.also { if (!it) form.update { f -> f.copy(error = "Revisa los campos marcados.") } }
     }
 
+    // Guarda la ficha. Si la crea el Investigador, queda en revisión y se avisa al Administrador.
     fun guardarFicha() {
         val u = yo?.takeIf { it.rol.editaFichas } ?: return
         if (!validarForm(CAMPOS_FICHA)) return
@@ -265,6 +280,7 @@ class MuseoViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    // Guarda el producto. Si es nuevo, avisa a los clientes.
     fun guardarProducto() {
         val u = yo?.takeIf { it.rol.gestiona } ?: return
         if (!validarForm(CAMPOS_PRODUCTO)) return
@@ -283,24 +299,31 @@ class MuseoViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    // ======================================================== Catálogo, carrito y solicitudes (9, 10, 12, 13)
+    // ================= Catálogo, carrito y solicitudes
+    // Productos que puede ver el rol (el Cliente no ve los desactivados).
     val productos: StateFlow<List<Producto>> = combine(dao.productos(), usuario) { l, u -> if (u?.rol?.gestiona == true) l else l.filter { it.activo } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    // Búsqueda y categoría elegidas en el catálogo.
     val busqueda = MutableStateFlow("")
     val categoria = MutableStateFlow<Categoria?>(null)
     val catalogo = combine(productos, busqueda, categoria) { l, texto, cat ->
         l.filter { (cat == null || it.categoria == cat) && it.nombre.contains(texto.trim(), ignoreCase = true) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    // Activa o desactiva un producto (Administrador).
     fun alternarActivo(p: Producto) = viewModelScope.launch { dao.actualizar(p.copy(activo = !p.activo)) }
 
+    // Carrito del usuario conectado.
     val carrito: StateFlow<List<LineaCarrito>> = porUsuario(emptyList()) { if (it.rol.compra) dao.carrito(it.id) else flowOf(emptyList()) }
+    // Destino y modalidad del envío elegidos en el carrito.
     val destino = MutableStateFlow(Destino.NACIONAL)
     val modalidad = MutableStateFlow(Modalidad.ESTANDAR)
 
+    // Costo del envío del carrito.
     fun costoEnvio(lineas: List<LineaCarrito>) =
         calcularEnvio(lineas.sumOf { it.pesoGramos * it.cantidad }, lineas.sumOf { it.subtotal }, destino.value, modalidad.value)
 
+    // Agrega un producto al carrito si hay stock.
     fun agregar(p: Producto, cantidad: Int, alTerminar: (Boolean) -> Unit) {
         val u = yo ?: return
         val enCarrito = carrito.value.firstOrNull { it.productoId == p.id }?.cantidad ?: 0
@@ -308,13 +331,14 @@ class MuseoViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch { dao.guardarItem(ItemCarrito(u.id, p.id, enCarrito + cantidad)); aviso("Agregado al carrito."); alTerminar(true) }
     }
 
+    // Cambia la cantidad de un producto del carrito (0 = lo quita).
     fun cambiarCantidad(l: LineaCarrito, cantidad: Int) {
         val u = yo ?: return
         if (cantidad > l.stock) { aviso("Solo hay ${l.stock} unidades."); return }
         viewModelScope.launch { if (cantidad <= 0) dao.quitarItem(u.id, l.productoId) else dao.guardarItem(ItemCarrito(u.id, l.productoId, cantidad)) }
     }
 
-    /** Confirma la compra: el DAO valida stock dentro de una transacción. */
+    // Confirma la compra, crea la solicitud y avisa al cliente y al Administrador.
     fun comprar() {
         val u = yo?.takeIf { it.rol.compra } ?: return
         viewModelScope.launch {
@@ -334,6 +358,7 @@ class MuseoViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    // Envía una consulta sobre un curso.
     fun pedirInformacion(p: Producto, mensaje: String) {
         val u = yo ?: return
         if (mensaje.trim().length < 10) { aviso("Escribe tu consulta (mínimo 10 caracteres)."); return }
@@ -344,9 +369,11 @@ class MuseoViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    // Solicitudes: el Cliente ve las suyas y el Administrador todas.
     val solicitudes: StateFlow<List<SolicitudConCliente>> =
         porUsuario(emptyList()) { dao.solicitudes(if (it.rol.gestiona) null else it.id) }
 
+    // El Administrador cambia el estado de una solicitud y avisa al cliente.
     fun cambiarEstado(s: Solicitud, estado: EstadoSolicitud) {
         val u = yo?.takeIf { it.rol.gestiona } ?: return
         viewModelScope.launch {
@@ -355,11 +382,12 @@ class MuseoViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    // ======================================================== QR (pantallas 7 y 8)
+    // ================= Códigos QR
+    // Resultado de la última lectura e historial de lecturas.
     val qr = MutableStateFlow<EstadoQr>(EstadoQr.Leyendo)
     val lecturas: StateFlow<List<LecturaQr>> = porUsuario(emptyList()) { dao.lecturas(it.id) }
 
-    /** Valida el JSON, busca la ficha y la guarda en el historial sin duplicar. */
+    // Lee el QR, busca su ficha y la guarda en el historial.
     fun procesarQr(texto: String) {
         val u = yo ?: return
         qr.value = EstadoQr.Leyendo
@@ -383,24 +411,29 @@ class MuseoViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    // ======================================================== Avisos y perfil (pantallas 14 y 15)
+    // ================= Avisos y perfil
+    // Avisos del usuario y, para el Administrador, la lista de cuentas.
     val notificaciones: StateFlow<List<Notificacion>> = porUsuario(emptyList()) { dao.notificaciones(it.id) }
     val usuarios: StateFlow<List<Usuario>> = porUsuario(emptyList()) { if (it.rol.gestiona) dao.usuarios() else flowOf(emptyList()) }
 
+    // Marca un aviso como leído (o todos si es null) y abre su pantalla.
     fun leer(n: Notificacion?) { val u = yo ?: return; viewModelScope.launch { dao.marcarLeida(u.id, n?.id) }; n?.destino?.let(::abrirDestino) }
 
+    // El Administrador envía un aviso a un rol o a todos.
     fun enviarAviso(rol: Rol?, titulo: String, mensaje: String) {
         val u = yo?.takeIf { it.rol.gestiona } ?: return
         if (titulo.isBlank() || mensaje.isBlank()) { aviso("Completa título y mensaje."); return }
         viewModelScope.launch { aviso("Aviso enviado a ${repo.avisar(rol, titulo.trim(), mensaje.trim(), "catalogo", u)} perfil(es).") }
     }
 
+    // Guarda los cambios del perfil.
     fun guardarPerfil(nombre: String, avatar: String, notificaciones: Boolean, textoGrande: Boolean, idioma: String) {
         val u = yo ?: return
         Validar.texto(nombre)?.let { aviso("Nombre: $it"); return }
         viewModelScope.launch { dao.actualizar(u.copy(nombre = nombre.trim(), avatar = avatar, notificaciones = notificaciones, textoGrande = textoGrande, idioma = idioma)); aviso("Perfil guardado ✓") }
     }
 
+    // El Administrador activa o desactiva una cuenta (no la suya).
     fun alternarCuenta(c: Usuario) {
         if (c.id == yo?.id) { aviso("No puedes desactivar tu propia cuenta."); return }
         viewModelScope.launch { dao.cambiarActivo(c.id, !c.activo) }

@@ -15,7 +15,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Pruebas de la lógica pura (sin Android), como FormularioViewModelTest del ejemplo. */
+// Pruebas de las reglas de la app: validaciones, envío, QR, permisos y contraseñas.
 class LogicaTest {
     @Test fun validaciones() {
         assertNull(Validar.correo("ana@ejemplo.cl"))

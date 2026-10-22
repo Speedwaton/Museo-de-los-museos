@@ -39,10 +39,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cl.triskeledu.museo.MuseoViewModel
 import cl.triskeledu.museo.model.Pantalla
 
-/**
- * Raíz de la interfaz: dibuja la última pantalla de la pila y, con sesión,
- * la barra inferior Inicio · Mapa · Catálogo (o QR) · Avisos · Perfil.
- */
+// Pantalla base: muestra la pantalla actual y la barra inferior (Inicio, Mapa, Catálogo o QR, Avisos y Perfil).
 @Composable
 fun MuseoApp(vm: MuseoViewModel) {
     val usuario by vm.usuario.collectAsStateWithLifecycle()
@@ -53,7 +50,7 @@ fun MuseoApp(vm: MuseoViewModel) {
     LaunchedEffect(Unit) { vm.mensajes.collect { snackbar.currentSnackbarData?.dismiss(); snackbar.showSnackbar(it) } }
     BackHandler(pila.size > 1) { vm.volver() }
 
-    // Android 13+: permiso de notificaciones al iniciar sesión.
+    // Pide permiso para mostrar notificaciones (Android 13 o más).
     val pedirPermiso = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
     LaunchedEffect(usuario?.id) { if (usuario != null && Build.VERSION.SDK_INT >= 33) pedirPermiso.launch(Manifest.permission.POST_NOTIFICATIONS) }
 

@@ -11,7 +11,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/** La migración 1 → 2 conserva los museos y favoritos. Ejecutar en un dispositivo: connectedDebugAndroidTest. */
+// Prueba que al pasar la base de la versión 1 a la 2 no se pierden museos ni favoritos.
+// Se ejecuta en un teléfono o emulador.
 @RunWith(AndroidJUnit4::class)
 class MigracionTest {
     @get:Rule val ayudante = MigrationTestHelper(InstrumentationRegistry.getInstrumentation(), BaseDatos::class.java)
