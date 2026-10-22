@@ -65,9 +65,10 @@ Sin Internet se muestra un emoji.
 
 ## QR
 
-**Lectura con cámara:** se usa solo el escáner de Google Play services, como el ejemplo de QR: abre su propia
-pantalla de cámara y devuelve el texto. En algunos teléfonos ese módulo de Google falla (en el Huawei STK-LX3
-responde "Failed to scan code"); ahí se puede probar con **"Probar sin cámara"**, pegando el JSON.
+**Lectura con cámara:** se usa el escáner de Google Play services, como el ejemplo de QR: abre su propia
+pantalla de cámara y devuelve el texto. Si la app se instaló desde Android Studio, el teléfono aún no tiene ese
+escáner ("Failed to scan code"); por eso la app lo descarga la primera vez que se usa (unos segundos) y luego abre
+la cámara. También se puede probar con **"Probar sin cámara"**, pegando el JSON.
 La carpeta `qr/` trae un PNG por museo y `qr_museos.txt` sus JSON para probar.
 
 El JSON lleva `tipo` (`museo`, `exposicion`, `publicacion`, `producto`, `curso`) y `codigo` (`MUS-001`…`MUS-012`,

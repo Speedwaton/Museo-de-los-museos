@@ -19,6 +19,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import cl.triskeledu.museo.MainActivity
 import cl.triskeledu.museo.R
+import com.google.android.gms.common.moduleinstall.InstallStatusListener
+import com.google.android.gms.common.moduleinstall.ModuleInstall
+import com.google.android.gms.common.moduleinstall.ModuleInstallRequest
+import com.google.android.gms.common.moduleinstall.ModuleInstallStatusUpdate
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
@@ -93,12 +97,42 @@ fun cargarImagen(origen: String, lado: Int = 900): Bitmap? = cache.get(origen) ?
 
 // ---------------------------------------------------------------- Códigos QR
 // Abre el escáner de Google, que usa la cámara y devuelve el texto del QR.
+// Si el teléfono aún no tiene el escáner (pasa al instalar desde Android Studio),
+// primero lo descarga en Google Play services y después abre la cámara.
 fun escanearQr(context: Context, alLeer: (String) -> Unit, alFallar: (String) -> Unit) {
-    GmsBarcodeScanning.getClient(context, GmsBarcodeScannerOptions.Builder().setBarcodeFormats(Barcode.FORMAT_QR_CODE).build())
-        .startScan()
-        .addOnSuccessListener { alLeer(it.rawValue ?: "") }
-        .addOnCanceledListener { alFallar("Escaneo cancelado.") }
-        .addOnFailureListener { alFallar("No se pudo escanear: ${it.message}") }
+    val escaner = GmsBarcodeScanning.getClient(context, GmsBarcodeScannerOptions.Builder().setBarcodeFormats(Barcode.FORMAT_QR_CODE).build())
+    val abrirCamara = {
+        escaner.startScan()
+            .addOnSuccessListener { alLeer(it.rawValue ?: "") }
+            .addOnCanceledListener { alFallar("Escaneo cancelado.") }
+            .addOnFailureListener { alFallar("No se pudo escanear: ${it.message}") }
+    }
+    val modulos = ModuleInstall.getClient(context)
+    modulos.areModulesAvailable(escaner)
+        .addOnSuccessListener { respuesta ->
+            if (respuesta.areModulesAvailable()) {
+                abrirCamara()
+            } else {
+                alFallar("Descargando el escáner de Google, espera un momento…")
+                // Avisa cuando termina la descarga para abrir la cámara.
+                val alTerminar = object : InstallStatusListener {
+                    override fun onInstallStatusUpdated(estado: ModuleInstallStatusUpdate) {
+                        when (estado.installState) {
+                            ModuleInstallStatusUpdate.InstallState.STATE_COMPLETED -> { modulos.unregisterListener(this); abrirCamara() }
+                            ModuleInstallStatusUpdate.InstallState.STATE_FAILED,
+                            ModuleInstallStatusUpdate.InstallState.STATE_CANCELED -> {
+                                modulos.unregisterListener(this)
+                                alFallar("No se pudo descargar el escáner. Revisa tu conexión a internet.")
+                            }
+                        }
+                    }
+                }
+                modulos.installModules(ModuleInstallRequest.newBuilder().addApi(escaner).setListener(alTerminar).build())
+                    .addOnSuccessListener { if (it.areModulesAlreadyInstalled()) abrirCamara() }
+                    .addOnFailureListener { alFallar("No se pudo descargar el escáner: ${it.message}") }
+            }
+        }
+        .addOnFailureListener { alFallar("Google Play services no está disponible: ${it.message}") }
 }
 
 // Dibuja la imagen del QR de una ficha.
