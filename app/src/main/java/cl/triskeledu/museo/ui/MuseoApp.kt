@@ -36,12 +36,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import cl.triskeledu.museo.MuseoViewModel
+import cl.triskeledu.museo.ViewModel
 import cl.triskeledu.museo.model.Pantalla
 
 // Pantalla base: muestra la pantalla actual y la barra inferior (Inicio, Mapa, Catálogo o QR, Avisos y Perfil).
 @Composable
-fun MuseoApp(vm: MuseoViewModel) {
+fun MuseoApp(vm: ViewModel) {
     val usuario by vm.usuario.collectAsStateWithLifecycle()
     val pila by vm.pila.collectAsStateWithLifecycle()
     val avisos by vm.notificaciones.collectAsStateWithLifecycle()

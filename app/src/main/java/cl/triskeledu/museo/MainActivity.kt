@@ -13,7 +13,7 @@ import java.io.File
 
 // Pantalla principal de Android. Desde aquí Compose dibuja todas las pantallas.
 class MainActivity : ComponentActivity() {
-    private val viewModel: MuseoViewModel by viewModels()
+    private val viewModel: ViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -81,7 +81,7 @@ val CAMPOS_PRODUCTO: Map<String, (String) -> String?> = linkedMapOf(
 // ViewModel de la app (MVVM): guarda el estado de todas las pantallas.
 // Las pantallas leen este estado y llaman a sus funciones; nunca tocan la base de datos.
 @OptIn(ExperimentalCoroutinesApi::class)
-class MuseoViewModel(app: Application) : AndroidViewModel(app) {
+class ViewModel(app: Application) : AndroidViewModel(app) {
     // Acceso a los datos y carga de los datos de demostración.
     private val repo = Repositorio(app)
     private val dao = repo.dao

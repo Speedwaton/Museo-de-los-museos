@@ -32,7 +32,7 @@ El botón **"Usar cuenta de demostración"** las rellena. Los clientes nuevos se
 
 ```text
 MainActivity.kt          Activity única, configuración de osmdroid y apertura desde notificaciones
-MuseoViewModel.kt        ÚNICO ViewModel: sesión, navegación, museos, catálogo, carrito, QR, avisos, perfil
+ViewModel.kt             ÚNICO ViewModel: sesión, navegación, museos, catálogo, carrito, QR, avisos, perfil
 data/Entidades.kt        Tablas Room (usuarios, museos, favoritos, productos, carrito, solicitudes, lecturas_qr, notificaciones)
 data/MuseoDao.kt         Único DAO (compra y lecturas QR en transacciones)
 data/BaseDatos.kt        Base Room v2, MIGRACION_1_2 y DatosDemo (datos de demostración)

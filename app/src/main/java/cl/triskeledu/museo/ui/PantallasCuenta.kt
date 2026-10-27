@@ -62,7 +62,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import cl.triskeledu.museo.MuseoViewModel
+import cl.triskeledu.museo.ViewModel
 import cl.triskeledu.museo.data.EstadoFicha
 import cl.triskeledu.museo.data.EstadoSolicitud
 import cl.triskeledu.museo.data.Usuario
@@ -77,7 +77,7 @@ import cl.triskeledu.museo.util.tienePermiso
 // ============================================================ Pantalla 1: Bienvenida
 // Logo animado, explicación de la app y botón Comenzar.
 @Composable
-fun PantallaBienvenida(vm: MuseoViewModel) {
+fun PantallaBienvenida(vm: ViewModel) {
     // Animación: el logo crece y se achica, y el texto aparece de abajo hacia arriba.
     val escala by rememberInfiniteTransition(label = "logo").animateFloat(0.92f, 1.08f, infiniteRepeatable(tween(1400), RepeatMode.Reverse), label = "e")
     val visible = remember { MutableTransitionState(false).apply { targetState = true } }
@@ -107,7 +107,7 @@ fun PantallaBienvenida(vm: MuseoViewModel) {
 // ============================================================ Pantalla 3: Selección de rol e inicio de sesión
 // Se elige el rol, se escribe correo y contraseña, y se entra.
 @Composable
-fun PantallaAcceso(vm: MuseoViewModel, alVolver: (() -> Unit)?) {
+fun PantallaAcceso(vm: ViewModel, alVolver: (() -> Unit)?) {
     val a by vm.acceso.collectAsStateWithLifecycle()
     ConBarra("Selecciona tu rol", alVolver) { m ->
         Column(Modifier.padding(m).imePadding().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -128,7 +128,7 @@ fun PantallaAcceso(vm: MuseoViewModel, alVolver: (() -> Unit)?) {
 // ============================================================ Pantalla 2: Registro de Cliente
 // Formulario para crear una cuenta nueva con nombre, correo, contraseña y avatar.
 @Composable
-fun PantallaRegistro(vm: MuseoViewModel, alVolver: () -> Unit) {
+fun PantallaRegistro(vm: ViewModel, alVolver: () -> Unit) {
     val r by vm.registro.collectAsStateWithLifecycle()
     ConBarra("Registro de cliente", alVolver) { m ->
         Column(Modifier.padding(m).imePadding().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -155,7 +155,7 @@ fun SelectorAvatar(actual: String, alElegir: (String) -> Unit) = Row(horizontalA
 // ============================================================ Pantalla 4: Inicio (dashboard)
 // Muestra números y accesos rápidos distintos según el rol.
 @Composable
-fun PantallaInicio(vm: MuseoViewModel, u: Usuario) {
+fun PantallaInicio(vm: ViewModel, u: Usuario) {
     val museos by vm.museos.collectAsStateWithLifecycle()
     val favoritos by vm.favoritos.collectAsStateWithLifecycle()
     val carrito by vm.carrito.collectAsStateWithLifecycle()
@@ -214,7 +214,7 @@ fun PantallaInicio(vm: MuseoViewModel, u: Usuario) {
 // ============================================================ Pantalla 14: Notificaciones
 // Lista de avisos del usuario. El Administrador también puede enviar avisos.
 @Composable
-fun PantallaAvisos(vm: MuseoViewModel, u: Usuario, alVolver: () -> Unit) {
+fun PantallaAvisos(vm: ViewModel, u: Usuario, alVolver: () -> Unit) {
     val lista by vm.notificaciones.collectAsStateWithLifecycle()
     var titulo by rememberSaveable { mutableStateOf("") }
     var mensaje by rememberSaveable { mutableStateOf("") }
@@ -246,7 +246,7 @@ fun PantallaAvisos(vm: MuseoViewModel, u: Usuario, alVolver: () -> Unit) {
 // ============================================================ Pantalla 15: Perfil
 // Datos y preferencias del usuario, permisos, cuentas de prueba (Admin) y cerrar sesión.
 @Composable
-fun PantallaPerfil(vm: MuseoViewModel, u: Usuario, alVolver: () -> Unit) {
+fun PantallaPerfil(vm: ViewModel, u: Usuario, alVolver: () -> Unit) {
     val cuentas by vm.usuarios.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var nombre by rememberSaveable(u.id) { mutableStateOf(u.nombre) }

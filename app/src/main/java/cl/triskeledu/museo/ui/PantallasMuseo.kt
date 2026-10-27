@@ -60,7 +60,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cl.triskeledu.museo.CAMPOS_FICHA
 import cl.triskeledu.museo.EstadoQr
-import cl.triskeledu.museo.MuseoViewModel
+import cl.triskeledu.museo.ViewModel
 import cl.triskeledu.museo.data.EstadoFicha
 import cl.triskeledu.museo.data.Usuario
 import cl.triskeledu.museo.model.LectorQr
@@ -88,7 +88,7 @@ fun colorFicha(e: EstadoFicha) = when (e) { EstadoFicha.PUBLICADO -> Verde; Esta
 // ============================================================ Pantalla 5: Mapa de museos
 // Mapa con un marcador por museo, filtros por país y proyecto, y botón Mi ubicación.
 @Composable
-fun PantallaMapa(vm: MuseoViewModel, u: Usuario, alVolver: () -> Unit) {
+fun PantallaMapa(vm: ViewModel, u: Usuario, alVolver: () -> Unit) {
     val todos by vm.museos.collectAsStateWithLifecycle()
     val museos by vm.museosFiltrados.collectAsStateWithLifecycle()
     val pais by vm.filtroPais.collectAsStateWithLifecycle()
@@ -155,7 +155,7 @@ fun PantallaMapa(vm: MuseoViewModel, u: Usuario, alVolver: () -> Unit) {
 // ============================================================ Pantalla 6: Detalle del museo
 // Foto, datos, ubicación y visita virtual. Según el rol: favorito, corregir, publicar o ver su QR.
 @Composable
-fun PantallaMuseo(vm: MuseoViewModel, u: Usuario, id: Long, alVolver: () -> Unit) {
+fun PantallaMuseo(vm: ViewModel, u: Usuario, id: Long, alVolver: () -> Unit) {
     val museos by vm.museos.collectAsStateWithLifecycle()
     val favoritos by vm.favoritos.collectAsStateWithLifecycle()
     val museo = museos.firstOrNull { it.id == id }
@@ -213,7 +213,7 @@ fun PantallaMuseo(vm: MuseoViewModel, u: Usuario, id: Long, alVolver: () -> Unit
 // ============================================================ Pantalla 6b: Crear o corregir una ficha
 // Formulario de la ficha, mapa para marcar la ubicación y foto con la cámara.
 @Composable
-fun PantallaFichaMuseo(vm: MuseoViewModel, id: Long?, alVolver: () -> Unit) {
+fun PantallaFichaMuseo(vm: ViewModel, id: Long?, alVolver: () -> Unit) {
     LaunchedEffect(id) { vm.prepararFicha(id) }
     val f by vm.form.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -268,7 +268,7 @@ fun PantallaFichaMuseo(vm: MuseoViewModel, id: Long?, alVolver: () -> Unit) {
 // ============================================================ Pantalla 11: Mi colección
 // Museos guardados como favoritos y museos consultados por QR.
 @Composable
-fun PantallaFavoritos(vm: MuseoViewModel, alVolver: () -> Unit) {
+fun PantallaFavoritos(vm: ViewModel, alVolver: () -> Unit) {
     val museos by vm.museos.collectAsStateWithLifecycle()
     val ids by vm.favoritos.collectAsStateWithLifecycle()
     val lecturas by vm.lecturas.collectAsStateWithLifecycle()
@@ -305,7 +305,7 @@ fun PantallaFavoritos(vm: MuseoViewModel, alVolver: () -> Unit) {
 private val JSON_EJEMPLO = LectorQr.generar("museo", "MUS-004", "Museo Nacional del Prado", "https://www.museodelprado.es/")
 
 @Composable
-fun PantallaEscaner(vm: MuseoViewModel, alVolver: (() -> Unit)?) {
+fun PantallaEscaner(vm: ViewModel, alVolver: (() -> Unit)?) {
     val context = LocalContext.current
     val lecturas by vm.lecturas.collectAsStateWithLifecycle()
     var texto by rememberSaveable { mutableStateOf("") }
@@ -331,7 +331,7 @@ fun PantallaEscaner(vm: MuseoViewModel, alVolver: (() -> Unit)?) {
 // ============================================================ Pantalla 8: Resultado del QR
 // Muestra la ficha encontrada, o el error si el código no sirve.
 @Composable
-fun PantallaResultadoQr(vm: MuseoViewModel, alVolver: () -> Unit) {
+fun PantallaResultadoQr(vm: ViewModel, alVolver: () -> Unit) {
     val estado by vm.qr.collectAsStateWithLifecycle()
     val links = LocalUriHandler.current
     val escala = remember { Animatable(0f) }

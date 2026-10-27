@@ -50,7 +50,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cl.triskeledu.museo.CAMPOS_PRODUCTO
-import cl.triskeledu.museo.MuseoViewModel
+import cl.triskeledu.museo.ViewModel
 import cl.triskeledu.museo.data.Categoria
 import cl.triskeledu.museo.data.EstadoSolicitud
 import cl.triskeledu.museo.data.Producto
@@ -75,7 +75,7 @@ private fun Disponibilidad(p: Producto) = when {
 // ============================================================ Pantalla 9: Catálogo
 // Productos y cursos con búsqueda y filtro. El Administrador puede agregar y desactivar.
 @Composable
-fun PantallaCatalogo(vm: MuseoViewModel, u: Usuario, alVolver: () -> Unit) {
+fun PantallaCatalogo(vm: ViewModel, u: Usuario, alVolver: () -> Unit) {
     val lista by vm.catalogo.collectAsStateWithLifecycle()
     val texto by vm.busqueda.collectAsStateWithLifecycle()
     val cat by vm.categoria.collectAsStateWithLifecycle()
@@ -112,7 +112,7 @@ fun PantallaCatalogo(vm: MuseoViewModel, u: Usuario, alVolver: () -> Unit) {
 // ============================================================ Pantalla 10: Detalle del producto
 // Agregar al carrito, o pedir información si es un curso.
 @Composable
-fun PantallaProducto(vm: MuseoViewModel, u: Usuario, id: Long, alVolver: () -> Unit) {
+fun PantallaProducto(vm: ViewModel, u: Usuario, id: Long, alVolver: () -> Unit) {
     val productos by vm.productos.collectAsStateWithLifecycle()
     val p = productos.firstOrNull { it.id == id }
     var cantidad by rememberSaveable { mutableIntStateOf(1) }
@@ -156,7 +156,7 @@ fun PantallaProducto(vm: MuseoViewModel, u: Usuario, id: Long, alVolver: () -> U
 
 // ============================================================ Pantalla 9b: Crear o editar un producto (Administrador)
 @Composable
-fun PantallaFichaProducto(vm: MuseoViewModel, id: Long?, alVolver: () -> Unit) {
+fun PantallaFichaProducto(vm: ViewModel, id: Long?, alVolver: () -> Unit) {
     LaunchedEffect(id) { vm.prepararProducto(id) }
     val f by vm.form.collectAsStateWithLifecycle()
     ConBarra(if (id == null) "Nuevo producto" else "Modificar producto", alVolver) { m ->
@@ -180,7 +180,7 @@ fun PantallaFichaProducto(vm: MuseoViewModel, id: Long?, alVolver: () -> Unit) {
 // ============================================================ Pantalla 12: Carrito
 // Productos elegidos, destino y modalidad de envío, total y confirmación.
 @Composable
-fun PantallaCarrito(vm: MuseoViewModel, alVolver: () -> Unit) {
+fun PantallaCarrito(vm: ViewModel, alVolver: () -> Unit) {
     val lineas by vm.carrito.collectAsStateWithLifecycle()
     val destino by vm.destino.collectAsStateWithLifecycle()
     val modalidad by vm.modalidad.collectAsStateWithLifecycle()
@@ -231,7 +231,7 @@ fun PantallaCarrito(vm: MuseoViewModel, alVolver: () -> Unit) {
 // ============================================================ Pantalla 13: Solicitudes
 // El Cliente ve sus pedidos; el Administrador los ve todos y cambia su estado.
 @Composable
-fun PantallaSolicitudes(vm: MuseoViewModel, u: Usuario, alVolver: () -> Unit) {
+fun PantallaSolicitudes(vm: ViewModel, u: Usuario, alVolver: () -> Unit) {
     val lista by vm.solicitudes.collectAsStateWithLifecycle()
     ConBarra(if (u.rol.gestiona) "Gestión de solicitudes" else "Mis solicitudes", alVolver) { m ->
         Column(Modifier.padding(m).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
